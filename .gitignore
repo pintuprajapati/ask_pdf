@@ -1,0 +1,19 @@
+# Compiled Python bytecode
+*.py[cod]
+*__pycache__
+**/migrations/**
+
+# Directories
+.env
+/venv/
+/docs/chroma/openai_embedding
+
+# db
+instance/
+*db
+db*
+
+# Other files
+README.md
+.dockerignore
+*.log
