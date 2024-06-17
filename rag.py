@@ -1,9 +1,11 @@
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter, CharacterTextSplitter
 from langchain_community.embeddings import SentenceTransformerEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores.chroma import Chroma
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain.chains.question_answering import load_qa_chain
+# from sentence_transformers import SentenceTransformer
 
 import os, json, traceback
 from pathlib import Path
@@ -91,20 +93,32 @@ def get_answer_from_vectordb(query, persist_directory, embeddings):
   print('\ninput text: ', query)
   print('\noutput text: ', answer['output_text'])
 
-############### Query the document based on user query using OpenAI ###############
-
-### below code is only for testing this file standalone to check what kind of response you getting ###
-
+############### Query the document based on user query using OpenAI LLM ###############
 content_directory = "book.pdf" # your input data (it can be document, txt, pdf, json etc...)
-persist_directory = "docs/chroma/openai_embedding" # To store/persist the vectors into local dir
-# embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
-embeddings = OpenAIEmbeddings()
 
-# Create persist dir of vectors, only when your input data/document is updated with new data/information OR you are creating it for the first time. Otherwise no need to create it (if created already)
+# model_name = "sentence-transformers/all-mpnet-base-v2"
+model_name = "sentence-transformers/all-MiniLM-L6-v2"
+model_kwargs = {'device': 'cpu'}
+encode_kwargs = {'normalize_embeddings': False}
+embeddings = HuggingFaceEmbeddings(
+    model_name=model_name,
+    model_kwargs=model_kwargs,
+    encode_kwargs=encode_kwargs
+)
+persist_directory = "docs/chroma/huggingface_embedding" # To store/persist the vectors into local dir
+            
+# uncomment below two lines if you wanna use OPENAI Embeddings
+# embeddings = OpenAIEmbeddings()
+# persist_directory = "docs/chroma/openai_embedding" # To store/persist the vectors into local dir
 
-create_persist_dir(content_directory, embeddings, persist_directory)
+# NOTE: Create persist dir of vectors only when your input data/document is updated with new data/information 
+# OR you are creating it for the first time. OR you are changing the embeddings model. Otherwise no need to create it (if created already)
+# create_persist_dir(content_directory, embeddings, persist_directory)
 
+# user query (ask any question from your document)
 query = "what's the title of the book?"
+
+# This will return the answer of your query
 get_answer_from_vectordb(query, persist_directory, embeddings)
 
 
